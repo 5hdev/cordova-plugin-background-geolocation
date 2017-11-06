@@ -8,7 +8,7 @@ Cross-platform **background location tracking** plugin for Cordova / PhoneGap wi
 This plugin can be used for **background location tracking** when app is running in foreground or background. It is more battery and data efficient than html5 geolocation or cordova-geolocation plugin. It can be used side by side with other geolocation providers (eg. html5 navigator.geolocation).
 
 On Android you can choose from two location location providers:
-* **ANDROID_DISTANCE_FILTER_PROVIDER** (forked from [cordova-plugin-background-geolocation](https://github.com/christocracy/cordova-plugin-background-geolocation))
+* **ANDROID_DISTANCE_FILTER_PROVIDER**
 * **ANDROID_ACTIVITY_PROVIDER**
 
 See [Which provider should I use?](https://github.com/saralweb/cordova-plugin-background-geolocation/blob/master/PROVIDERS.md) for more information about providers.
