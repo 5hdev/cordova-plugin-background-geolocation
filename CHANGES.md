@@ -3,7 +3,7 @@
 ### [2.4.0] - 2017-1-06
 ### Fix
 - iOS bugs #324, #294
-###Add
+### Add
 - iOS LOCATION_ALWAYS_AND_WHEN_IN_USE_USAGE_DESCRIPTION in plugin.xml to support background location tracking in iOS-11
 
 ### [2.3.1] - 2017-10-31
