@@ -1,5 +1,5 @@
 {
-  "name": "cordova-plugin-saralweb-background-geolocation",
+  "name": "@saralweb/cordova-plugin-saralweb-background-geolocation",
   "version": "2.4.0",
   "description": "Cordova Background Geolocation Plugin",
   "cordova": {
@@ -30,7 +30,7 @@
       "version": ">=3.0.0"
     }
   ],
-  "author": "",
+  "author": "Saralweb",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/saralweb/cordova-plugin-background-geolocation/issues"
