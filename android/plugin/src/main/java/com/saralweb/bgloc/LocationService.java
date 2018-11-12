@@ -209,7 +209,7 @@ public class LocationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        log.info("Received start startId: {} intent: {}", startId, intent);
+        log.info("Receivedxx start startId: {} intent: {}", startId, intent);
 
         if (provider != null) {
             provider.onDestroy();
