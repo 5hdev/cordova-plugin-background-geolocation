@@ -17,6 +17,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.database.SQLException;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -32,6 +34,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 
 import com.saralweb.bgloc.data.BackgroundLocation;
@@ -48,6 +51,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
+import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 
 public class LocationService extends Service {
@@ -186,11 +191,13 @@ public class LocationService extends Service {
     public void onDestroy() {
         log.info("Destroying LocationService");
         provider.onDestroy();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             handlerThread.quitSafely();
         } else {
             handlerThread.quit(); //sorry
         }
+
         unregisterReceiver(connectivityChangeReceiver);
         super.onDestroy();
     }
@@ -198,18 +205,41 @@ public class LocationService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         log.debug("Task has been removed");
+
+        if (config == null) {
+            ConfigurationDAO dao = DAOFactory.createConfigurationDAO(this);
+            try {
+                config = dao.retrieveConfiguration();
+            } catch (JSONException e) {
+                log.error("Config exception: {}", e.getMessage());
+                config = new Config(); //using default config
+            }
+        }
+
         if (config.getStopOnTerminate()) {
             log.info("Stopping self");
             stopSelf();
         } else {
             log.info("Continue running in background");
+            /* Handle custom android OS */
+            if (isOSCustomAndroid()) {
+                log.info("Restarting LocationService explicitly using AlarmManager");
+                Intent restartServiceIntent = new Intent(getApplicationContext(), this.getClass());
+                restartServiceIntent.setPackage(getPackageName());
+                restartServiceIntent.putExtra("config", config);
+
+                PendingIntent restartServicePendingIntent = PendingIntent.getService(getApplicationContext(), 1, restartServiceIntent, PendingIntent.FLAG_ONE_SHOT);
+                AlarmManager alarmService = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+                alarmService.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 1000, restartServicePendingIntent);
+            }
         }
         super.onTaskRemoved(rootIntent);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        log.info("Receivedzz start startId: {} intent: {}", startId, intent);
+        log.info("Received start startId: {} intent: {}", startId, intent);
+        log.info("MANUFACTURER: {} BRAND: {}", Build.MANUFACTURER, Build.BRAND);
 
         if (provider != null) {
             provider.onDestroy();
@@ -242,14 +272,17 @@ public class LocationService extends Service {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
             builder.setContentTitle(config.getNotificationTitle());
             builder.setContentText(config.getNotificationText());
+
             if (config.getSmallNotificationIcon() != null) {
                 builder.setSmallIcon(getDrawableResource(config.getSmallNotificationIcon()));
             } else {
                 builder.setSmallIcon(android.R.drawable.ic_menu_mylocation);
             }
+
             if (config.getLargeNotificationIcon() != null) {
                 builder.setLargeIcon(BitmapFactory.decodeResource(getApplication().getResources(), getDrawableResource(config.getLargeNotificationIcon())));
             }
+
             if (config.getNotificationIconColor() != null) {
                 builder.setColor(this.parseNotificationIconColor(config.getNotificationIconColor()));
             }
@@ -264,6 +297,7 @@ public class LocationService extends Service {
 
             Notification notification = builder.build();
             notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE | Notification.FLAG_NO_CLEAR;
+            log.info("Executing startForeground with startId: {}", startId);
             startForeground(startId, notification);
         }
 
@@ -305,6 +339,17 @@ public class LocationService extends Service {
         provider.stopRecording();
     }
 
+    public Boolean isOSCustomAndroid() {
+        log.info("MANUFACTURER: {} BRAND: {}", Build.MANUFACTURER, Build.BRAND);
+        // TODO: get list of brands from config (which comes with custom android os and has autostart and power saving mode)
+        List<String> brandsWithCustomOS = new ArrayList<String> (Arrays.asList(new String[] {"vivo", "oppo", "lava"}));
+        Boolean customAndroid = false;
+
+        if (brandsWithCustomOS.contains(Build.BRAND) || brandsWithCustomOS.contains(Build.MANUFACTURER)) {
+            customAndroid = true;
+        }
+        return customAndroid;
+    }
 
     /**
      * Handle location from location location provider

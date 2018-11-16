@@ -473,6 +473,7 @@ public class BackgroundGeolocationPlugin extends CordovaPlugin {
         unregisterLocationModeChangeReceiver();
         doUnbindService();
         if (config != null && config.getStopOnTerminate()) {
+            log.info("Stopping BackgroundService");
             stopBackgroundService();
         }
         super.onDestroy();
