@@ -11,7 +11,6 @@ package com.saralweb.bgloc;
 
 import android.accounts.Account;
 import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -339,16 +338,17 @@ public class LocationService extends Service {
         provider.stopRecording();
     }
 
-    public Boolean isOSCustomAndroid() {
+    public boolean isOSCustomAndroid() {
         log.info("MANUFACTURER: {} BRAND: {}", Build.MANUFACTURER, Build.BRAND);
         // TODO: get list of brands from config (which comes with custom android os and has autostart and power saving mode)
         List<String> brandsWithCustomOS = new ArrayList<String> (Arrays.asList(new String[] {"vivo", "oppo", "lava"}));
-        Boolean customAndroid = false;
 
-        if (brandsWithCustomOS.contains(Build.BRAND) || brandsWithCustomOS.contains(Build.MANUFACTURER)) {
-            customAndroid = true;
+        for (String bElem : brandsWithCustomOS) {
+            if (bElem.equalsIgnoreCase(Build.BRAND) || bElem.equalsIgnoreCase(Build.MANUFACTURER)) {
+                return true;
+            }
         }
-        return customAndroid;
+        return false;
     }
 
     /**
