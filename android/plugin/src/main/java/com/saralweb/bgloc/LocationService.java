@@ -303,7 +303,7 @@ public class LocationService extends Service {
         provider.startRecording();
 
         //We want this service to continue running until it is explicitly stopped
-        return START_STICKY;
+        return Service.START_STICKY;
     }
 
     protected int getAppResource(String name, String type) {
