@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-saralweb-background-geolocation",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "description": "Cordova Background Geolocation Plugin",
   "cordova": {
     "id": "cordova-plugin-saralweb-background-geolocation",
