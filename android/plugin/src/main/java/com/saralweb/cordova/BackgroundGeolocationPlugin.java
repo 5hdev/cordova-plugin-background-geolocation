@@ -15,6 +15,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -36,6 +37,7 @@ import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
 
 import com.saralweb.bgloc.Config;
+import com.saralweb.bgloc.Helpers;
 import com.saralweb.bgloc.LocationService;
 import com.saralweb.bgloc.ResourceResolver;
 import com.saralweb.bgloc.data.BackgroundLocation;
@@ -89,7 +91,6 @@ public class BackgroundGeolocationPlugin extends CordovaPlugin {
     private Messenger mService = null;
     /** Flag indicating whether we have called bind on the service. */
     private Boolean isBound = false;
-    private Boolean isServiceRunning = false;
 
     private Config config;
     private CallbackContext callbackContext;
@@ -98,6 +99,7 @@ public class BackgroundGeolocationPlugin extends CordovaPlugin {
     private CallbackContext locationModeChangeCallbackContext;
     private ExecutorService executorService;
     private BackgroundLocation stationaryLocation;
+    private Helpers helpers = new Helpers();
 
     private org.slf4j.Logger log;
 
@@ -477,6 +479,13 @@ public class BackgroundGeolocationPlugin extends CordovaPlugin {
             stopBackgroundService();
         }
         super.onDestroy();
+
+        // sending broadcast to make sure that LocationService is running porperly,
+        // service will be restarted if not running already
+        log.info("Sending broadcast RestartLocationService");
+        Intent broadcastIntent = new Intent("com.saralweb.bgloc.RestartLocationService");
+        getContext().sendBroadcast(broadcastIntent);
+
     }
 
     protected BackgroundGeolocationPlugin getSelf() {
@@ -505,7 +514,7 @@ public class BackgroundGeolocationPlugin extends CordovaPlugin {
     }
 
     protected void startBackgroundService () {
-        if (!isServiceRunning) {
+        if (!helpers.isServiceRunning(getContext(), LocationService.class)) {
             log.info("Starting bg service");
             Activity activity = getActivity();
             Intent locationServiceIntent = new Intent(activity, LocationService.class);
@@ -513,15 +522,15 @@ public class BackgroundGeolocationPlugin extends CordovaPlugin {
             locationServiceIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
             // start service to keep service running even if no clients are bound to it
             activity.startService(locationServiceIntent);
-            isServiceRunning = true;
         }
     }
 
     protected void stopBackgroundService() {
-        log.info("Stopping bg service");
-        Activity activity = getActivity();
-        activity.stopService(new Intent(activity, LocationService.class));
-        isServiceRunning = false;
+        if (helpers.isServiceRunning(getContext(), LocationService.class)) {
+            log.info("Stopping bg service");
+            Activity activity = getActivity();
+            activity.stopService(new Intent(activity, LocationService.class));
+        }
     }
 
     void doBindService () {

@@ -39,6 +39,8 @@
         <source-file src="android/plugin/src/main/java/com/saralweb/bgloc/LocationProvider.java" target-dir="src/com/saralweb/bgloc"/>
         <source-file src="android/plugin/src/main/java/com/saralweb/bgloc/LocationProviderFactory.java" target-dir="src/com/saralweb/bgloc"/>
         <source-file src="android/plugin/src/main/java/com/saralweb/bgloc/LocationService.java" target-dir="src/com/saralweb/bgloc"/>
+        <source-file src="android/plugin/src/main/java/com/saralweb/bgloc/RestartLocationServiceReceiver.java" target-dir="src/com/saralweb/bgloc"/>
+        <source-file src="android/plugin/src/main/java/com/saralweb/bgloc/Helpers.java" target-dir="src/com/saralweb/bgloc"/>
         <source-file src="android/plugin/src/main/java/com/saralweb/bgloc/ResourceResolver.java" target-dir="src/com/saralweb/bgloc"/>
         <source-file src="android/plugin/src/main/java/com/saralweb/bgloc/UploadingCallback.java" target-dir="src/com/saralweb/bgloc"/>
         <source-file src="android/plugin/src/main/java/com/saralweb/bgloc/data/BackgroundLocation.java" target-dir="src/com/saralweb/bgloc/data" />
@@ -96,11 +98,10 @@
                 android:exported="false"
                 android:syncable="true"/>
             <service
+                android:name="com.saralweb.bgloc.LocationService"
                 android:enabled="true"
                 android:exported="false"
-                android:name="com.saralweb.bgloc.LocationService"
-                android:stopWithTask="false"
-                />
+                android:stopWithTask="false" />
             <receiver
                   android:name="com.saralweb.bgloc.BootCompletedReceiver"
                   android:enabled="true"
@@ -108,6 +109,15 @@
                <intent-filter>
                   <action android:name="android.intent.action.BOOT_COMPLETED" />
                </intent-filter>
+            </receiver>
+            <receiver
+                android:name="com.saralweb.bgloc.RestartLocationServiceReceiver"
+                android:enabled="true"
+                android:exported="true"
+                android:label="RestartLocationServiceWhenDestroyed">
+                <intent-filter>
+                    <action android:name="com.saralweb.bgloc.RestartLocationService" />
+                </intent-filter>
             </receiver>
         </config-file>
 

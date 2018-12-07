@@ -199,6 +199,12 @@ public class LocationService extends Service {
 
         unregisterReceiver(connectivityChangeReceiver);
         super.onDestroy();
+
+        // sending broadcast to make sure that LocationService is running porperly,
+        // service will be restarted if not running already
+        log.info("Sending broadcast RestartLocationService");
+        Intent broadcastIntent = new Intent("com.saralweb.bgloc.RestartLocationService");
+        sendBroadcast(broadcastIntent);
     }
 
     @Override
@@ -232,13 +238,19 @@ public class LocationService extends Service {
                 alarmService.set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 1000, restartServicePendingIntent);
             }
         }
+
+        // sending broadcast to make sure that LocationService is running porperly,
+        // service will be restarted if not running already
+        log.info("Sending broadcast RestartLocationService");
+        Intent broadcastIntent = new Intent("com.saralweb.bgloc.RestartLocationService");
+        sendBroadcast(broadcastIntent);
+
         super.onTaskRemoved(rootIntent);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         log.info("Received start startId: {} intent: {}", startId, intent);
-        log.info("MANUFACTURER: {} BRAND: {}", Build.MANUFACTURER, Build.BRAND);
 
         if (provider != null) {
             provider.onDestroy();
@@ -301,6 +313,7 @@ public class LocationService extends Service {
         }
 
         provider.startRecording();
+        super.onStartCommand(intent, flags, startId);
 
         //We want this service to continue running until it is explicitly stopped
         return Service.START_STICKY;
@@ -345,9 +358,11 @@ public class LocationService extends Service {
 
         for (String bElem : brandsWithCustomOS) {
             if (bElem.equalsIgnoreCase(Build.BRAND) || bElem.equalsIgnoreCase(Build.MANUFACTURER)) {
+                log.info("isOSCustomAndroid: true");
                 return true;
             }
         }
+        log.info("isOSCustomAndroid: false");
         return false;
     }
 
